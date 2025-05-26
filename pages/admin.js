@@ -35,7 +35,11 @@ export default function AdminPage() {
     setBusy(false)
   }
 
-  if (error)   return <p>Failed to load workers.</p>
+  if (error){
+      console.log(error);
+      return <p>Failed to load workers.</p>
+      
+  }   
   if (!workers) return <p>Loading…</p>
 
   return (
