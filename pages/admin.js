@@ -117,20 +117,20 @@ export default function AdminPage({ initialWorkers }) {
   )
 }
 
-// // This runs ON THE SERVER at each request:
-// export async function getServerSideProps() {
-//   // 1) Connect to Mongo
-//   await dbConnect()
+// This runs ON THE SERVER at each request:
+export async function getServerSideProps() {
+  // 1) Connect to Mongo
+  await dbConnect()
+  console.log('it passed')
+  // 2) Fetch all workers
+  const docs = await Worker.find({}, 'name workerId').lean()
+  console.log('docs is,' ,docs)
+  // 3) Serialize for JSON
+  const initialWorkers = docs.map(d => ({
+    name: d.name,
+    workerId: d.workerId
+  }))
 
-//   // 2) Fetch all workers
-//   const docs = await Worker.find({}, 'name workerId').lean()
-
-//   // 3) Serialize for JSON
-//   const initialWorkers = docs.map(d => ({
-//     name: d.name,
-//     workerId: d.workerId
-//   }))
-
-//   // 4) Pass to the page via props
-//   return { props: { initialWorkers } }
-// }
+  // 4) Pass to the page via props
+  return { props: { initialWorkers } }
+}
