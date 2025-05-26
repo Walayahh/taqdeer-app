@@ -1,31 +1,23 @@
 // pages/admin.js
 import { useState } from 'react'
-import useSWR      from 'swr'
-import QRCode      from 'qrcode.react'
+import { useRouter } from 'next/router'
+import QRCode         from 'qrcode.react'
+import dbConnect      from '../lib/mongoose'
+import Worker         from '../models/Worker'
 
-const fetcher = async url => {
-  const res = await fetch(url)
-  if (!res.ok) {
-    const text = await res.text()
-    throw new Error(`Failed to fetch ${url}: ${res.status} ${res.statusText} – ${text}`)
-  }
-  return res.json()
-}
-
-
-export default function AdminPage() {
-  // fetch all workers
-  const { data: workers, error, mutate } = useSWR('/api/workers', fetcher)
-  const [name, setName] = useState('')
-  const [id, setId]     = useState('')
-  const [busy, setBusy] = useState(false)
-  const [err, setErr]   = useState('')
+export default function AdminPage({ initialWorkers }) {
+  const [workers, setWorkers] = useState(initialWorkers)
+  const [name,    setName]    = useState('')
+  const [id,      setId]      = useState('')
+  const [busy,    setBusy]    = useState(false)
+  const [error,   setError]   = useState('')
+  const router               = useRouter()
 
   async function handleCreate(e) {
     e.preventDefault()
-    setErr('')
+    setError('')
     if (!name.trim() || !id.trim()) {
-      setErr('Name & ID required')
+      setError('Name & ID required')
       return
     }
     setBusy(true)
@@ -35,24 +27,20 @@ export default function AdminPage() {
       body: JSON.stringify({ name: name.trim(), id: id.trim() })
     })
     const j = await res.json()
-    if (!res.ok) setErr(j.error || 'Failed to create')
-    else {
-      setName(''); setId(''); 
-      await mutate()  // re-fetch list
+    if (!res.ok) {
+      setError(j.error || 'Failed to create')
+    } else {
+      // clear form and reload to get fresh data
+      setName(''); setId('')
+      router.replace(router.asPath)
     }
     setBusy(false)
   }
 
-  if (error){
-      console.log(error.message);
-      return <p>Failed to load workers.</p>
-      
-  }   
-  if (!workers) return <p>Loading…</p>
-
   return (
     <div style={{ padding: '2rem', maxWidth: 900, margin: 'auto' }}>
       <h1>🛠️ Admin Panel</h1>
+
       <form onSubmit={handleCreate} style={{ margin: '1.5rem 0' }}>
         <input
           type="text"
@@ -85,7 +73,8 @@ export default function AdminPage() {
           {busy ? 'Creating…' : 'Create Worker'}
         </button>
       </form>
-      {err && <p style={{ color:'red' }}>{err}</p>}
+
+      {error && <p style={{ color:'red' }}>{error}</p>}
 
       <h2>All Workers</h2>
       <div style={{
@@ -95,7 +84,9 @@ export default function AdminPage() {
       }}>
         {workers.map(w => {
           const tipPath = `/tip/${encodeURIComponent(w.workerId)}`
-          const fullUrl = `${process.env.NEXT_PUBLIC_BASE_URL}${tipPath}`
+          // for QR, use absolute URL if you have NEXT_PUBLIC_BASE_URL
+          const fullUrl = (process.env.NEXT_PUBLIC_BASE_URL || '') + tipPath
+
           return (
             <div key={w.workerId} style={{
               border:'1px solid #ccc',
@@ -111,7 +102,7 @@ export default function AdminPage() {
               </div>
 
               <a
-                href={fullUrl}
+                href={tipPath}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ color:'#0070f3', textDecoration:'underline' }}
@@ -124,4 +115,22 @@ export default function AdminPage() {
       </div>
     </div>
   )
+}
+
+// This runs ON THE SERVER at each request:
+export async function getServerSideProps() {
+  // 1) Connect to Mongo
+  await dbConnect()
+
+  // 2) Fetch all workers
+  const docs = await Worker.find({}, 'name workerId').lean()
+
+  // 3) Serialize for JSON
+  const initialWorkers = docs.map(d => ({
+    name: d.name,
+    workerId: d.workerId
+  }))
+
+  // 4) Pass to the page via props
+  return { props: { initialWorkers } }
 }
