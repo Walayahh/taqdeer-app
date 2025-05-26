@@ -1,6 +1,6 @@
 // pages/admin.js
 import dbConnect from '../lib/mongoose';
-import Worker from '../models/Worker';  // adjust path to your Mongoose model
+import Worker from '../models/Worker';  
 import QRCode from 'qrcode.react';
 
 export default function AdminPage({ workers }) {
@@ -16,7 +16,7 @@ export default function AdminPage({ workers }) {
       }}>
         {workers.map(w => {
           const tipPath = `/tip/${encodeURIComponent(w.workerId)}`;
-          const fullUrl = `${process.env.NEXT_PUBLIC_BASE_URL}${tipPath}`;
+          const fullUrl = `https://${process.env.NEXT_PUBLIC_BASE_URL}${tipPath}`;
           return (
             <div key={w.workerId} style={{
               border: '1px solid #ccc',
@@ -45,7 +45,9 @@ export default function AdminPage({ workers }) {
 
 // This runs on every request and supplies `workers` to the page
 export async function getServerSideProps() {
+  console.log('im herererererere')
   await dbConnect();
+  console.log('im here 222')
   const docs = await Worker.find({}, 'name workerId').lean();
   const workers = docs.map(d => ({
     name: d.name,
