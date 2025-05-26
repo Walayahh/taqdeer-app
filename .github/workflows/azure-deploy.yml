@@ -23,7 +23,7 @@ jobs:
       - name: Build Next.js
         run: npm run build
         env:
-          MONGO_URI:            ${{ secrets.MONGO_URI }}
+          MONGO_URI:            ${{ secrets.MONGO_URI}}
           NEXT_PUBLIC_BASE_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL }}
 
       - name: Deploy to Azure Web App
