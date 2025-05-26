@@ -1,11 +1,20 @@
 // pages/api/workers/index.js
-import { connect } from '../../../lib/mongoose';
-import Worker     from '../../../models/Worker';
+import dbConnect from '../../../lib/mongoose';
+import Worker    from '../../../models/Worker';
 
 export default async function handler(req, res) {
-  if (req.method !== 'GET') return res.status(405).end();
-  await connect();
-  const list = await Worker.find({}, 'name workerId').lean();
-  // Return array of { name, workerId }
-  res.json(list);
+  await dbConnect();
+
+  if (req.method === 'GET') {
+    try {
+      const workers = await Worker.find({}, 'name workerId').lean();
+      return res.status(200).json(workers);
+    } catch (e) {
+      console.error(e);
+      return res.status(500).json({ error: 'DB error' });
+    }
+  }
+
+  res.setHeader('Allow', ['GET']);
+  res.status(405).end(`Method ${req.method} Not Allowed`);
 }
