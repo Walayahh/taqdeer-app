@@ -36,7 +36,7 @@ export default function AdminPage() {
   }
 
   if (error){
-      console.log(error);
+      console.log(error.message);
       return <p>Failed to load workers.</p>
       
   }   
