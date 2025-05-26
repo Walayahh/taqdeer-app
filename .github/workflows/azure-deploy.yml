@@ -26,25 +26,45 @@ jobs:
           MONGO_URI: ${{ secrets.MONGO_URI }}
           NEXT_PUBLIC_BASE_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL }}
       
-      - name: Create deployment package
+      - name: Verify build and prepare for deployment
         run: |
-          # Create a deployment directory
-          mkdir deployment-package
+          echo "=== Build Verification ==="
+          ls -la
+          echo "=== .next directory ==="
+          ls -la .next
+          echo "=== .next/static ==="
+          ls -la .next/static || echo "No static directory"
+          echo "=== .next/server ==="
+          ls -la .next/server || echo "No server directory"
           
-          # Copy necessary files
-          cp -r .next deployment-package/
-          cp -r node_modules deployment-package/
-          cp -r public deployment-package/ || echo "No public directory found"
-          cp package*.json deployment-package/
-          cp next.config.js deployment-package/ || echo "No next.config.js found"
+          # Create .deployment file for Azure
+          echo "[config]" > .deployment
+          echo "SCM_DO_BUILD_DURING_DEPLOYMENT=false" >> .deployment
           
-          # List contents to verify
-          echo "Deployment package contents:"
-          ls -la deployment-package/
+          # Create web.config for better error reporting
+          cat > web.config << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <configuration>
+            <system.webServer>
+              <handlers>
+                <add name="iisnode" path="server.js" verb="*" modules="iisnode"/>
+              </handlers>
+              <rewrite>
+                <rules>
+                  <rule name="DynamicContent">
+                    <match url="/*" />
+                    <action type="Rewrite" url="server.js"/>
+                  </rule>
+                </rules>
+              </rewrite>
+              <httpErrors errorMode="Detailed" />
+            </system.webServer>
+          </configuration>
+          EOF
       
       - name: Deploy to Azure Web App ✨Production✨
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: ./deployment-package
+          package: .
