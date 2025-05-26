@@ -1,25 +1,33 @@
-// pages/tip/[id].js  (or wherever you mount your AnimatedTipPage)
 import React, { useState, useEffect } from 'react';
 
 export default function AnimatedTipPage() {
-  const [amount, setAmount]     = useState('');
-  const [loading, setLoading]   = useState(false);
-  const [message, setMessage]   = useState('');
+  const [amount, setAmount] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
-  const [showFees, setShowFees]       = useState(false);
+  const [showFees, setShowFees] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
-  // static worker info for demo; swap out for real fetch
+  // Static worker info for demo
   const worker = { name: 'Ahmed Hassan', id: '123' };
 
-  // fees calculation
-  const numAmount  = parseFloat(amount) || 0;
+  // Fees calculation
+  const numAmount = parseFloat(amount) || 0;
   const serviceFee = numAmount > 0 ? numAmount * 0.0225 + 0.25 : 0;
-  const totalPay   = numAmount + serviceFee;
+  const totalPay = numAmount + serviceFee;
   const workerGets = numAmount;
 
   useEffect(() => {
     setShowFees(numAmount > 0);
   }, [numAmount]);
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      setMousePos({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
 
   const handleTip = async () => {
     if (numAmount < 1) {
@@ -29,7 +37,6 @@ export default function AnimatedTipPage() {
     setLoading(true);
     setMessage('');
     try {
-      // → call your real API here
       await new Promise(r => setTimeout(r, 1500));
       setShowSuccess(true);
       setMessage(`✅ Tip sent! ${worker.name} gets ${workerGets.toFixed(2)} AED.`);
@@ -46,190 +53,309 @@ export default function AnimatedTipPage() {
     }
   };
 
-  return (
-    <div className="wrapper">
-      <img src="/taqdeer.png" alt="Taqdeer Logo" className="logo" />
+  const FloatingParticles = () => (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden">
+      {[...Array(12)].map((_, i) => (
+        <div
+          key={i}
+          className={`absolute w-1 h-1 bg-cream/60 rounded-full animate-float-${i % 4}`}
+          style={{
+            left: `${10 + (i * 8)}%`,
+            animationDelay: `${i * 1.2}s`,
+            animationDuration: `${15 + (i % 5)}s`
+          }}
+        />
+      ))}
+    </div>
+  );
 
-      <div className="card">
-        <h1 className="card-title">Tip your worker</h1>
-        <p className="card-subtitle">to {worker.name}</p>
+  const AnimatedBackground = () => (
+    <div className="fixed inset-0 -z-10">
+      <div className="absolute inset-0 bg-gradient-to-br from-olive-dark via-olive to-olive-light"></div>
+      
+      {/* Animated orbs */}
+      <div className="absolute top-[10%] left-[10%] w-72 h-72 bg-gradient-radial from-olive-light/30 to-transparent rounded-full blur-3xl animate-float-slow"></div>
+      <div className="absolute top-[60%] right-[10%] w-96 h-96 bg-gradient-radial from-sage/30 to-transparent rounded-full blur-3xl animate-float-slow-delayed"></div>
+      <div className="absolute bottom-[20%] left-[30%] w-60 h-60 bg-gradient-radial from-mint/30 to-transparent rounded-full blur-3xl animate-float-medium"></div>
+      
+      <FloatingParticles />
+    </div>
+  );
 
-        <div className="input-group">
-          <label htmlFor="tip-amount">Amount (AED)</label>
-          <input
-            id="tip-amount"
-            type="number"
-            min="1"
-            step="0.01"
-            placeholder="0.00"
-            value={amount}
-            onChange={e => setAmount(e.target.value)}
-            disabled={loading}
-          />
+  const WorkerCard = ({ worker }) => (
+    <div className="relative bg-gradient-to-br from-olive to-olive-light rounded-3xl p-8 text-center overflow-hidden shadow-2xl mb-8">
+      {/* Shine effect */}
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-shine"></div>
+      
+      <div className="relative z-10">
+        <div className="w-20 h-20 mx-auto mb-6 bg-cream/20 backdrop-blur-sm border-2 border-cream/30 rounded-full flex items-center justify-center">
+          <span className="text-cream text-2xl font-bold">
+            {worker.name.split(' ').map(n => n[0]).join('')}
+          </span>
         </div>
+        
+        <h1 className="text-cream text-4xl font-black mb-2 drop-shadow-sm">
+          {worker.name}
+        </h1>
+        <p className="text-cream/80 text-lg font-medium">
+          Service Professional
+        </p>
+      </div>
+    </div>
+  );
 
-        {showFees && (
-          <div className="fees">
-            <div><span>Tip:</span><span>{numAmount.toFixed(2)} AED</span></div>
-            <div><span>Service fee:</span><span>{serviceFee.toFixed(2)} AED</span></div>
-            <div className="fees-total"><span>Total:</span><span>{totalPay.toFixed(2)} AED</span></div>
-            <div className="worker-gets">Worker gets {workerGets.toFixed(2)} AED</div>
+  const AmountInput = ({ amount, setAmount, loading }) => (
+    <div className="relative mb-8">
+      <div className="absolute left-6 top-1/2 -translate-y-1/2 text-olive-light font-bold text-xl z-10">
+        AED
+      </div>
+      <input
+        type="number"
+        min="1"
+        step="0.01"
+        placeholder="0.00"
+        value={amount}
+        onChange={(e) => setAmount(e.target.value)}
+        disabled={loading}
+        className="w-full pl-20 pr-6 py-6 text-3xl font-bold text-olive bg-white/80 backdrop-blur-sm border-2 border-olive/20 rounded-2xl text-center outline-none transition-all duration-300 focus:border-olive-light focus:shadow-lg focus:shadow-olive/10 focus:-translate-y-1 disabled:opacity-60"
+      />
+    </div>
+  );
+
+  const FeesBreakdown = ({ numAmount, serviceFee, totalPay, workerGets, worker }) => (
+    <div className="bg-olive/5 backdrop-blur-sm border border-olive/10 rounded-2xl p-6 mb-8 animate-fade-in-up">
+      <div className="space-y-3">
+        <div className="flex justify-between text-olive font-medium">
+          <span>Tip Amount</span>
+          <span>{numAmount.toFixed(2)} AED</span>
+        </div>
+        <div className="flex justify-between text-olive font-medium">
+          <span>Service Fee</span>
+          <span>{serviceFee.toFixed(2)} AED</span>
+        </div>
+        <div className="h-px bg-gradient-to-r from-transparent via-olive/30 to-transparent my-4"></div>
+        <div className="flex justify-between text-olive font-bold text-lg">
+          <span>Total Payment</span>
+          <span>{totalPay.toFixed(2)} AED</span>
+        </div>
+        <div className="mt-4 p-4 bg-olive-light/10 border border-olive-light/20 rounded-xl text-center">
+          <span className="text-olive font-semibold">
+            ✨ {worker.name} receives {workerGets.toFixed(2)} AED
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+
+  const SendButton = ({ onClick, loading, disabled }) => (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`relative w-full py-6 px-8 bg-gradient-to-r from-olive-light to-olive text-cream text-xl font-bold rounded-2xl overflow-hidden transition-all duration-300 shadow-lg shadow-olive/30 ${
+        !disabled ? 'hover:-translate-y-1 hover:shadow-xl hover:shadow-olive/40' : 'opacity-60 cursor-not-allowed'
+      } ${loading ? 'animate-pulse' : ''}`}
+    >
+      <span className="relative z-10">
+        {loading ? 'Sending...' : 'Send Tip'}
+      </span>
+      
+      {/* Button shine effect */}
+      <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full transition-transform duration-500 ${!disabled ? 'hover:translate-x-full' : ''}`}></div>
+    </button>
+  );
+
+  const SuccessOverlay = ({ show, worker }) => {
+    if (!show) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
+        <div className="bg-gradient-to-br from-cream to-cream/95 rounded-3xl p-12 text-center max-w-md mx-4 shadow-2xl animate-success-pop">
+          <div className="text-6xl mb-6 animate-bounce">🎉</div>
+          <h2 className="text-olive text-2xl font-black mb-4">
+            Tip Sent Successfully!
+          </h2>
+          <p className="text-olive-light text-lg leading-relaxed mb-8">
+            Your generous tip is on its way to <strong>{worker.name}</strong>
+          </p>
+          <div className="w-16 h-16 mx-auto bg-gradient-to-br from-olive-light to-olive rounded-full flex items-center justify-center text-cream text-3xl font-bold animate-checkmark-pop">
+            ✓
           </div>
-        )}
+        </div>
+      </div>
+    );
+  };
 
-        <button
-          className="send-btn"
-          onClick={handleTip}
-          disabled={loading || numAmount < 1}
-        >
-          {loading ? 'Sending…' : 'Send Tip'}
-        </button>
+  return (
+    <>
+      <AnimatedBackground />
+      
+      <div className="min-h-screen flex items-center justify-center p-8 relative z-10">
+        <div className="w-full max-w-lg bg-cream/95 backdrop-blur-2xl border border-cream/20 rounded-3xl p-12 shadow-2xl animate-slide-up">
+          {/* Logo section */}
+          <div className="text-center mb-8">
+            <div className="inline-block px-8 py-3 bg-gradient-to-r from-olive to-olive-light rounded-2xl shadow-lg">
+              <span className="text-cream font-black text-xl tracking-wider">
+                TAQDEER
+              </span>
+            </div>
+          </div>
 
-        {message && <div className="message">{message}</div>}
+          {/* Worker card */}
+          <WorkerCard worker={worker} />
+
+          {/* Tip section */}
+          <div className="text-center">
+            <h2 className="text-olive text-2xl font-bold mb-8">Send a Tip</h2>
+            
+            <AmountInput 
+              amount={amount} 
+              setAmount={setAmount} 
+              loading={loading} 
+            />
+
+            {showFees && (
+              <FeesBreakdown
+                numAmount={numAmount}
+                serviceFee={serviceFee}
+                totalPay={totalPay}
+                workerGets={workerGets}
+                worker={worker}
+              />
+            )}
+
+            <SendButton
+              onClick={handleTip}
+              loading={loading}
+              disabled={loading || numAmount < 1}
+            />
+
+            {message && (
+              <div className="mt-6 p-4 bg-olive-light/10 text-olive font-medium rounded-xl animate-slide-down">
+                {message}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
-      {showSuccess && (
-        <div className="overlay">
-          <div className="overlay-content">
-            <h2>🎉 Thank you!</h2>
-            <p>Your tip is on its way to {worker.name}.</p>
-          </div>
-        </div>
-      )}
+      <SuccessOverlay show={showSuccess} worker={worker} />
 
       <style jsx>{`
-        .wrapper {
-          /* full-screen olive background */
-          min-height: 100vh;
-          background: #4F7042;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          padding: 1rem;
-          font-family: 'Inter', sans-serif;
-          color: #F5ECD9;
-          position: relative;
-        }
-        .logo {
-          max-width: 180px;
-          margin-bottom: 2rem;
-        }
-        .card {
-          width: 100%;
-          max-width: 360px;
-          background: #F5ECD9;
-          color: #4F7042;
-          border-radius: 16px;
-          padding: 2rem;
-          box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-          text-align: center;
-          animation: fadeIn 0.6s ease-out;
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(20px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        .card-title {
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        
+        :global(body) {
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
           margin: 0;
-          font-size: 1.75rem;
-          font-weight: 700;
+          padding: 0;
+          overflow-x: hidden;
         }
-        .card-subtitle {
-          margin: .5rem 0 1.5rem;
-          font-size: 1rem;
+
+        :global(.bg-olive-dark) { background-color: #2d4a33; }
+        :global(.bg-olive) { background-color: #4F7042; }
+        :global(.bg-olive-light) { background-color: #6E9F6D; }
+        :global(.bg-sage) { background-color: #A5C3A1; }
+        :global(.bg-mint) { background-color: #8BB48A; }
+        :global(.bg-cream) { background-color: #F5ECD9; }
+        :global(.text-olive-dark) { color: #2d4a33; }
+        :global(.text-olive) { color: #4F7042; }
+        :global(.text-olive-light) { color: #6E9F6D; }
+        :global(.text-cream) { color: #F5ECD9; }
+
+        :global(.animate-float-slow) {
+          animation: float 8s ease-in-out infinite;
         }
-        .input-group {
-          text-align: left;
-          margin-bottom: 1rem;
+        :global(.animate-float-slow-delayed) {
+          animation: float 8s ease-in-out infinite 2s;
         }
-        .input-group label {
-          display: block;
-          margin-bottom: .5rem;
-          font-weight: 600;
+        :global(.animate-float-medium) {
+          animation: float 8s ease-in-out infinite 4s;
         }
-        .input-group input {
-          width: 100%;
-          padding: .75rem 1rem;
-          border: 2px solid #4F7042;
-          border-radius: 8px;
-          font-size: 1rem;
-          color: #4F7042;
-          outline: none;
+        :global(.animate-float-0) {
+          animation: particleFloat 15s linear infinite;
         }
-        .input-group input:focus {
-          box-shadow: 0 0 0 3px rgba(79,112,66,0.3);
+        :global(.animate-float-1) {
+          animation: particleFloat 18s linear infinite;
         }
-        .fees {
-          background: rgba(79,112,66,0.1);
-          border-radius: 8px;
-          padding: 1rem;
-          margin-bottom: 1rem;
-          text-align: left;
+        :global(.animate-float-2) {
+          animation: particleFloat 20s linear infinite;
         }
-        .fees > div {
-          display: flex;
-          justify-content: space-between;
-          margin-bottom: .5rem;
+        :global(.animate-float-3) {
+          animation: particleFloat 16s linear infinite;
         }
-        .fees-total {
-          font-weight: 700;
-          border-top: 1px solid rgba(79,112,66,0.3);
-          padding-top: .5rem;
+        :global(.animate-shine) {
+          animation: shine 3s ease-in-out infinite;
         }
-        .worker-gets {
-          margin-top: .5rem;
-          font-weight: 600;
-          text-align: center;
+        :global(.animate-fade-in) {
+          animation: fadeIn 0.5s ease-out;
         }
-        .send-btn {
-          width: 100%;
-          padding: 1rem;
-          background: #6E9F6D;
-          border: none;
-          border-radius: 8px;
-          color: #F5ECD9;
-          font-size: 1rem;
-          font-weight: 600;
-          cursor: pointer;
-          transition: background .3s;
+        :global(.animate-fade-in-up) {
+          animation: fadeInUp 0.5s ease-out;
         }
-        .send-btn:disabled {
-          background: #A5C3A1;
-          cursor: not-allowed;
+        :global(.animate-slide-up) {
+          animation: slideUp 0.8s ease-out;
         }
-        .send-btn:not(:disabled):hover {
-          background: #56824F;
+        :global(.animate-slide-down) {
+          animation: slideDown 0.3s ease-out;
         }
-        .message {
-          margin-top: 1rem;
-          font-size: .95rem;
+        :global(.animate-success-pop) {
+          animation: successPop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
-        .overlay {
-          position: fixed;
-          top: 0; left: 0;
-          width: 100%; height: 100%;
-          background: rgba(0,0,0,0.6);
-          display:flex; align-items:center; justify-content:center;
+        :global(.animate-checkmark-pop) {
+          animation: checkmarkPop 0.8s ease-out 0.5s both;
         }
-        .overlay-content {
-          background: #F5ECD9;
-          color: #4F7042;
-          padding: 2rem;
-          border-radius: 12px;
-          text-align: center;
-          animation: popIn 0.5s ease-out;
+
+        @keyframes float {
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          33% { transform: translateY(-30px) rotate(120deg); }
+          66% { transform: translateY(20px) rotate(240deg); }
         }
-        @keyframes popIn {
-          from { opacity:0; transform: scale(0.8); }
-          to   { opacity:1; transform: scale(1); }
+
+        @keyframes particleFloat {
+          0% { transform: translateY(100vh) scale(0); opacity: 0; }
+          10% { opacity: 1; }
+          90% { opacity: 1; }
+          100% { transform: translateY(-10vh) scale(1); opacity: 0; }
         }
-        /* responsive tweaks */
-        @media (max-width: 360px) {
-          .card { padding: 1.5rem; }
-          .card-title { font-size: 1.5rem; }
+
+        @keyframes shine {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(50px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideDown {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes successPop {
+          0% { opacity: 0; transform: scale(0.5) rotate(-10deg); }
+          100% { opacity: 1; transform: scale(1) rotate(0deg); }
+        }
+
+        @keyframes checkmarkPop {
+          0% { opacity: 0; transform: scale(0); }
+          100% { opacity: 1; transform: scale(1); }
+        }
+
+        .bg-gradient-radial {
+          background: radial-gradient(circle, var(--tw-gradient-stops));
         }
       `}</style>
-    </div>
+    </>
   );
 }
