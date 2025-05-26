@@ -1,10 +1,5 @@
 import React, { useState, useEffect } from 'react';
-// pages/tip/[id].js
-import AnimatedTipPage from '../components/AnimatedTipPage';
 
-export default function TipPage() {
-  return <AnimatedTipPage />;
-}
 
 export default function AnimatedTipPage() {
   const [amount, setAmount] = useState('');
