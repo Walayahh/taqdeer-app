@@ -1,4 +1,5 @@
 name: Build & Deploy to Azure Web App
+
 on:
   push:
     branches: [ main ]
@@ -6,28 +7,44 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
+    
     steps:
       - uses: actions/checkout@v3
-
+      
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
           cache: 'npm'
-
+      
       - name: Install dependencies
         run: npm ci
-
+      
       - name: Build Next.js
         run: npm run build
         env:
           MONGO_URI: ${{ secrets.MONGO_URI }}
           NEXT_PUBLIC_BASE_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL }}
-
+      
+      - name: Create deployment package
+        run: |
+          # Create a deployment directory
+          mkdir deployment-package
+          
+          # Copy necessary files
+          cp -r .next deployment-package/
+          cp -r node_modules deployment-package/
+          cp -r public deployment-package/ || echo "No public directory found"
+          cp package*.json deployment-package/
+          cp next.config.js deployment-package/ || echo "No next.config.js found"
+          
+          # List contents to verify
+          echo "Deployment package contents:"
+          ls -la deployment-package/
+      
       - name: Deploy to Azure Web App ✨Production✨
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: .
+          package: ./deployment-package
