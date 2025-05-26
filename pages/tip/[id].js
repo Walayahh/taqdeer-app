@@ -64,9 +64,10 @@ export default function AnimatedTipPage() {
         <div className="glass-container">
           {/* Logo Section */}
           <div className="logo-section">
-            <div className="logo-placeholder">
-              <span className="logo-text">TAQDEER</span>
-            </div>
+          <div className="logo-container">
+            <img src="taqdeer.png" alt="Taqdeer" className="logo-image" />
+          </div>
+
           </div>
 
           {/* Worker Card */}
@@ -162,6 +163,39 @@ export default function AnimatedTipPage() {
 
       <style jsx>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+        .logo-placeholder {
+        display: inline-block;
+        padding: 1rem 2.5rem;
+        background: linear-gradient(135deg, #4F7042, #6E9F6D);
+        border-radius: 24px;
+        box-shadow: 0 8px 24px rgba(79, 112, 66, 0.4);
+        transform: perspective(1000px) rotateX(5deg);
+      }
+
+      .logo-text {
+        color: #F5ECD9;
+        font-weight: 900;
+        font-size: 1.4rem;
+        letter-spacing: 3px;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      }
+        
+            .logo-container {
+        display: inline-block;
+        padding: 1rem;
+        background: linear-gradient(135deg, #4F7042, #6E9F6D);
+        border-radius: 24px;
+        box-shadow: 0 8px 24px rgba(79, 112, 66, 0.4);
+        transform: perspective(1000px) rotateX(5deg);
+      }
+
+      .logo-image {
+        width: 120px;
+        height: auto;
+        border-radius: 16px;
+        display: block;
+      }
         
         * {
           margin: 0;
