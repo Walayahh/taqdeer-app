@@ -3,7 +3,15 @@ import { useState } from 'react'
 import useSWR      from 'swr'
 import QRCode      from 'qrcode.react'
 
-const fetcher = url => fetch(url).then(r => r.json())
+const fetcher = async url => {
+  const res = await fetch(url)
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`Failed to fetch ${url}: ${res.status} ${res.statusText} – ${text}`)
+  }
+  return res.json()
+}
+
 
 export default function AdminPage() {
   // fetch all workers
