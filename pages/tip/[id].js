@@ -1,4 +1,10 @@
 import React, { useState, useEffect } from 'react';
+// pages/tip/[id].js
+import AnimatedTipPage from '../components/AnimatedTipPage';
+
+export default function TipPage() {
+  return <AnimatedTipPage />;
+}
 
 export default function AnimatedTipPage() {
   const [amount, setAmount] = useState('');
@@ -6,7 +12,6 @@ export default function AnimatedTipPage() {
   const [message, setMessage] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
   const [showFees, setShowFees] = useState(false);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   // Static worker info for demo
   const worker = { name: 'Ahmed Hassan', id: '123' };
@@ -20,14 +25,6 @@ export default function AnimatedTipPage() {
   useEffect(() => {
     setShowFees(numAmount > 0);
   }, [numAmount]);
-
-  useEffect(() => {
-    const handleMouseMove = (e) => {
-      setMousePos({ x: e.clientX, y: e.clientY });
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
 
   const handleTip = async () => {
     if (numAmount < 1) {
@@ -53,184 +50,100 @@ export default function AnimatedTipPage() {
     }
   };
 
-  const FloatingParticles = () => (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden">
-      {[...Array(12)].map((_, i) => (
-        <div
-          key={i}
-          className={`absolute w-1 h-1 bg-cream/60 rounded-full animate-float-${i % 4}`}
-          style={{
-            left: `${10 + (i * 8)}%`,
-            animationDelay: `${i * 1.2}s`,
-            animationDuration: `${15 + (i % 5)}s`
-          }}
-        />
-      ))}
-    </div>
-  );
-
-  const AnimatedBackground = () => (
-    <div className="fixed inset-0 -z-10">
-      <div className="absolute inset-0 bg-gradient-to-br from-olive-dark via-olive to-olive-light"></div>
-      
-      {/* Animated orbs */}
-      <div className="absolute top-[10%] left-[10%] w-72 h-72 bg-gradient-radial from-olive-light/30 to-transparent rounded-full blur-3xl animate-float-slow"></div>
-      <div className="absolute top-[60%] right-[10%] w-96 h-96 bg-gradient-radial from-sage/30 to-transparent rounded-full blur-3xl animate-float-slow-delayed"></div>
-      <div className="absolute bottom-[20%] left-[30%] w-60 h-60 bg-gradient-radial from-mint/30 to-transparent rounded-full blur-3xl animate-float-medium"></div>
-      
-      <FloatingParticles />
-    </div>
-  );
-
-  const WorkerCard = ({ worker }) => (
-    <div className="relative bg-gradient-to-br from-olive to-olive-light rounded-3xl p-8 text-center overflow-hidden shadow-2xl mb-8">
-      {/* Shine effect */}
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-shine"></div>
-      
-      <div className="relative z-10">
-        <div className="w-20 h-20 mx-auto mb-6 bg-cream/20 backdrop-blur-sm border-2 border-cream/30 rounded-full flex items-center justify-center">
-          <span className="text-cream text-2xl font-bold">
-            {worker.name.split(' ').map(n => n[0]).join('')}
-          </span>
-        </div>
-        
-        <h1 className="text-cream text-4xl font-black mb-2 drop-shadow-sm">
-          {worker.name}
-        </h1>
-        <p className="text-cream/80 text-lg font-medium">
-          Service Professional
-        </p>
-      </div>
-    </div>
-  );
-
-  const AmountInput = ({ amount, setAmount, loading }) => (
-    <div className="relative mb-8">
-      <div className="absolute left-6 top-1/2 -translate-y-1/2 text-olive-light font-bold text-xl z-10">
-        AED
-      </div>
-      <input
-        type="number"
-        min="1"
-        step="0.01"
-        placeholder="0.00"
-        value={amount}
-        onChange={(e) => setAmount(e.target.value)}
-        disabled={loading}
-        className="w-full pl-20 pr-6 py-6 text-3xl font-bold text-olive bg-white/80 backdrop-blur-sm border-2 border-olive/20 rounded-2xl text-center outline-none transition-all duration-300 focus:border-olive-light focus:shadow-lg focus:shadow-olive/10 focus:-translate-y-1 disabled:opacity-60"
-      />
-    </div>
-  );
-
-  const FeesBreakdown = ({ numAmount, serviceFee, totalPay, workerGets, worker }) => (
-    <div className="bg-olive/5 backdrop-blur-sm border border-olive/10 rounded-2xl p-6 mb-8 animate-fade-in-up">
-      <div className="space-y-3">
-        <div className="flex justify-between text-olive font-medium">
-          <span>Tip Amount</span>
-          <span>{numAmount.toFixed(2)} AED</span>
-        </div>
-        <div className="flex justify-between text-olive font-medium">
-          <span>Service Fee</span>
-          <span>{serviceFee.toFixed(2)} AED</span>
-        </div>
-        <div className="h-px bg-gradient-to-r from-transparent via-olive/30 to-transparent my-4"></div>
-        <div className="flex justify-between text-olive font-bold text-lg">
-          <span>Total Payment</span>
-          <span>{totalPay.toFixed(2)} AED</span>
-        </div>
-        <div className="mt-4 p-4 bg-olive-light/10 border border-olive-light/20 rounded-xl text-center">
-          <span className="text-olive font-semibold">
-            ✨ {worker.name} receives {workerGets.toFixed(2)} AED
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-
-  const SendButton = ({ onClick, loading, disabled }) => (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={`relative w-full py-6 px-8 bg-gradient-to-r from-olive-light to-olive text-cream text-xl font-bold rounded-2xl overflow-hidden transition-all duration-300 shadow-lg shadow-olive/30 ${
-        !disabled ? 'hover:-translate-y-1 hover:shadow-xl hover:shadow-olive/40' : 'opacity-60 cursor-not-allowed'
-      } ${loading ? 'animate-pulse' : ''}`}
-    >
-      <span className="relative z-10">
-        {loading ? 'Sending...' : 'Send Tip'}
-      </span>
-      
-      {/* Button shine effect */}
-      <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full transition-transform duration-500 ${!disabled ? 'hover:translate-x-full' : ''}`}></div>
-    </button>
-  );
-
-  const SuccessOverlay = ({ show, worker }) => {
-    if (!show) return null;
-
-    return (
-      <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
-        <div className="bg-gradient-to-br from-cream to-cream/95 rounded-3xl p-12 text-center max-w-md mx-4 shadow-2xl animate-success-pop">
-          <div className="text-6xl mb-6 animate-bounce">🎉</div>
-          <h2 className="text-olive text-2xl font-black mb-4">
-            Tip Sent Successfully!
-          </h2>
-          <p className="text-olive-light text-lg leading-relaxed mb-8">
-            Your generous tip is on its way to <strong>{worker.name}</strong>
-          </p>
-          <div className="w-16 h-16 mx-auto bg-gradient-to-br from-olive-light to-olive rounded-full flex items-center justify-center text-cream text-3xl font-bold animate-checkmark-pop">
-            ✓
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <>
-      <AnimatedBackground />
-      
-      <div className="min-h-screen flex items-center justify-center p-8 relative z-10">
-        <div className="w-full max-w-lg bg-cream/95 backdrop-blur-2xl border border-cream/20 rounded-3xl p-12 shadow-2xl animate-slide-up">
-          {/* Logo section */}
-          <div className="text-center mb-8">
-            <div className="inline-block px-8 py-3 bg-gradient-to-r from-olive to-olive-light rounded-2xl shadow-lg">
-              <span className="text-cream font-black text-xl tracking-wider">
-                TAQDEER
-              </span>
+      {/* Animated Background */}
+      <div className="animated-background">
+        <div className="gradient-orb orb-1"></div>
+        <div className="gradient-orb orb-2"></div>
+        <div className="gradient-orb orb-3"></div>
+        <div className="floating-particles">
+          {[...Array(12)].map((_, i) => (
+            <div key={i} className={`particle particle-${i + 1}`}></div>
+          ))}
+        </div>
+      </div>
+
+      {/* Main Container */}
+      <div className="main-container">
+        <div className="glass-container">
+          {/* Logo Section */}
+          <div className="logo-section">
+            <div className="logo-placeholder">
+              <span className="logo-text">TAQDEER</span>
             </div>
           </div>
 
-          {/* Worker card */}
-          <WorkerCard worker={worker} />
+          {/* Worker Card */}
+          <div className="worker-card">
+            <div className="worker-card-shine"></div>
+            <div className="worker-avatar">
+              <span className="avatar-text">
+                {worker.name.split(' ').map(n => n[0]).join('')}
+              </span>
+            </div>
+            <h1 className="worker-name">{worker.name}</h1>
+            <p className="worker-subtitle">Service Professional</p>
+          </div>
 
-          {/* Tip section */}
-          <div className="text-center">
-            <h2 className="text-olive text-2xl font-bold mb-8">Send a Tip</h2>
+          {/* Tip Section */}
+          <div className="tip-section">
+            <h2 className="section-title">Send a Tip</h2>
             
-            <AmountInput 
-              amount={amount} 
-              setAmount={setAmount} 
-              loading={loading} 
-            />
-
-            {showFees && (
-              <FeesBreakdown
-                numAmount={numAmount}
-                serviceFee={serviceFee}
-                totalPay={totalPay}
-                workerGets={workerGets}
-                worker={worker}
+            {/* Amount Input */}
+            <div className="amount-input-container">
+              <div className="currency-symbol">AED</div>
+              <input
+                type="number"
+                min="1"
+                step="0.01"
+                placeholder="0.00"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                disabled={loading}
+                className="amount-input"
               />
+            </div>
+
+            {/* Fees Breakdown */}
+            {showFees && (
+              <div className="fees-breakdown">
+                <div className="fee-row">
+                  <span>Tip Amount</span>
+                  <span>{numAmount.toFixed(2)} AED</span>
+                </div>
+                <div className="fee-row">
+                  <span>Service Fee</span>
+                  <span>{serviceFee.toFixed(2)} AED</span>
+                </div>
+                <div className="fee-divider"></div>
+                <div className="fee-row total-row">
+                  <span>Total Payment</span>
+                  <span>{totalPay.toFixed(2)} AED</span>
+                </div>
+                <div className="worker-receives">
+                  <span className="receives-text">
+                    ✨ {worker.name} receives {workerGets.toFixed(2)} AED
+                  </span>
+                </div>
+              </div>
             )}
 
-            <SendButton
+            {/* Send Button */}
+            <button
+              className={`send-button ${loading ? 'loading' : ''}`}
               onClick={handleTip}
-              loading={loading}
               disabled={loading || numAmount < 1}
-            />
+            >
+              <span className="button-text">
+                {loading ? 'Sending...' : 'Send Tip'}
+              </span>
+              <div className="button-shine"></div>
+            </button>
 
+            {/* Message Display */}
             {message && (
-              <div className="mt-6 p-4 bg-olive-light/10 text-olive font-medium rounded-xl animate-slide-down">
+              <div className="message-display">
                 {message}
               </div>
             )}
@@ -238,88 +151,506 @@ export default function AnimatedTipPage() {
         </div>
       </div>
 
-      <SuccessOverlay show={showSuccess} worker={worker} />
+      {/* Success Overlay */}
+      {showSuccess && (
+        <div className="success-overlay">
+          <div className="success-content">
+            <div className="success-icon">🎉</div>
+            <h2 className="success-title">Tip Sent Successfully!</h2>
+            <p className="success-message">
+              Your generous tip is on its way to <strong>{worker.name}</strong>
+            </p>
+            <div className="success-checkmark">✓</div>
+          </div>
+        </div>
+      )}
 
       <style jsx>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
         
-        :global(body) {
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        * {
           margin: 0;
           padding: 0;
-          overflow-x: hidden;
+          box-sizing: border-box;
         }
 
-        :global(.bg-olive-dark) { background-color: #2d4a33; }
-        :global(.bg-olive) { background-color: #4F7042; }
-        :global(.bg-olive-light) { background-color: #6E9F6D; }
-        :global(.bg-sage) { background-color: #A5C3A1; }
-        :global(.bg-mint) { background-color: #8BB48A; }
-        :global(.bg-cream) { background-color: #F5ECD9; }
-        :global(.text-olive-dark) { color: #2d4a33; }
-        :global(.text-olive) { color: #4F7042; }
-        :global(.text-olive-light) { color: #6E9F6D; }
-        :global(.text-cream) { color: #F5ECD9; }
+        :global(body) {
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+          overflow-x: hidden;
+          background: #2d4a33;
+        }
 
-        :global(.animate-float-slow) {
+        .animated-background {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100vw;
+          height: 100vh;
+          background: linear-gradient(135deg, #2d4a33 0%, #4F7042 50%, #3a5d40 100%);
+          z-index: -2;
+        }
+
+        .gradient-orb {
+          position: absolute;
+          border-radius: 50%;
+          filter: blur(40px);
+          opacity: 0.4;
           animation: float 8s ease-in-out infinite;
         }
-        :global(.animate-float-slow-delayed) {
-          animation: float 8s ease-in-out infinite 2s;
+
+        .orb-1 {
+          width: 350px;
+          height: 350px;
+          background: radial-gradient(circle, #6E9F6D 0%, transparent 70%);
+          top: 10%;
+          left: 10%;
+          animation-delay: 0s;
         }
-        :global(.animate-float-medium) {
-          animation: float 8s ease-in-out infinite 4s;
+
+        .orb-2 {
+          width: 450px;
+          height: 450px;
+          background: radial-gradient(circle, #A5C3A1 0%, transparent 70%);
+          top: 50%;
+          right: 10%;
+          animation-delay: 2s;
         }
-        :global(.animate-float-0) {
-          animation: particleFloat 15s linear infinite;
-        }
-        :global(.animate-float-1) {
-          animation: particleFloat 18s linear infinite;
-        }
-        :global(.animate-float-2) {
-          animation: particleFloat 20s linear infinite;
-        }
-        :global(.animate-float-3) {
-          animation: particleFloat 16s linear infinite;
-        }
-        :global(.animate-shine) {
-          animation: shine 3s ease-in-out infinite;
-        }
-        :global(.animate-fade-in) {
-          animation: fadeIn 0.5s ease-out;
-        }
-        :global(.animate-fade-in-up) {
-          animation: fadeInUp 0.5s ease-out;
-        }
-        :global(.animate-slide-up) {
-          animation: slideUp 0.8s ease-out;
-        }
-        :global(.animate-slide-down) {
-          animation: slideDown 0.3s ease-out;
-        }
-        :global(.animate-success-pop) {
-          animation: successPop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        }
-        :global(.animate-checkmark-pop) {
-          animation: checkmarkPop 0.8s ease-out 0.5s both;
+
+        .orb-3 {
+          width: 300px;
+          height: 300px;
+          background: radial-gradient(circle, #8BB48A 0%, transparent 70%);
+          bottom: 15%;
+          left: 25%;
+          animation-delay: 4s;
         }
 
         @keyframes float {
-          0%, 100% { transform: translateY(0) rotate(0deg); }
-          33% { transform: translateY(-30px) rotate(120deg); }
-          66% { transform: translateY(20px) rotate(240deg); }
+          0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+          33% { transform: translateY(-40px) rotate(120deg) scale(1.1); }
+          66% { transform: translateY(25px) rotate(240deg) scale(0.9); }
         }
 
+        .floating-particles {
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          overflow: hidden;
+        }
+
+        .particle {
+          position: absolute;
+          width: 6px;
+          height: 6px;
+          background: rgba(245, 236, 217, 0.7);
+          border-radius: 50%;
+          animation: particleFloat 20s linear infinite;
+          box-shadow: 0 0 6px rgba(245, 236, 217, 0.5);
+        }
+
+        .particle-1 { left: 8%; animation-delay: 0s; }
+        .particle-2 { left: 18%; animation-delay: 3s; }
+        .particle-3 { left: 28%; animation-delay: 6s; }
+        .particle-4 { left: 38%; animation-delay: 9s; }
+        .particle-5 { left: 48%; animation-delay: 12s; }
+        .particle-6 { left: 58%; animation-delay: 15s; }
+        .particle-7 { left: 68%; animation-delay: 2s; }
+        .particle-8 { left: 78%; animation-delay: 5s; }
+        .particle-9 { left: 88%; animation-delay: 8s; }
+        .particle-10 { left: 13%; animation-delay: 11s; }
+        .particle-11 { left: 73%; animation-delay: 14s; }
+        .particle-12 { left: 33%; animation-delay: 17s; }
+
         @keyframes particleFloat {
-          0% { transform: translateY(100vh) scale(0); opacity: 0; }
-          10% { opacity: 1; }
-          90% { opacity: 1; }
-          100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+          0% { 
+            transform: translateY(110vh) translateX(0) scale(0); 
+            opacity: 0; 
+          }
+          10% { 
+            opacity: 1; 
+            transform: translateY(100vh) translateX(10px) scale(1); 
+          }
+          90% { 
+            opacity: 1; 
+            transform: translateY(-10vh) translateX(-10px) scale(1); 
+          }
+          100% { 
+            transform: translateY(-20vh) translateX(0) scale(0); 
+            opacity: 0; 
+          }
+        }
+
+        .main-container {
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 2rem;
+          position: relative;
+          z-index: 1;
+        }
+
+        .glass-container {
+          width: 100%;
+          max-width: 500px;
+          background: rgba(245, 236, 217, 0.95);
+          backdrop-filter: blur(25px);
+          border: 1px solid rgba(245, 236, 217, 0.3);
+          border-radius: 36px;
+          padding: 3.5rem;
+          box-shadow: 
+            0 32px 64px rgba(0, 0, 0, 0.3),
+            0 0 0 1px rgba(255, 255, 255, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+          animation: slideUp 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+          position: relative;
+          overflow: hidden;
+        }
+
+        .glass-container::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 2px;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+          border-radius: 36px 36px 0 0;
+        }
+
+        @keyframes slideUp {
+          from { 
+            opacity: 0; 
+            transform: translateY(60px) scale(0.95); 
+          }
+          to { 
+            opacity: 1; 
+            transform: translateY(0) scale(1); 
+          }
+        }
+
+        .logo-section {
+          text-align: center;
+          margin-bottom: 3rem;
+        }
+
+        .logo-placeholder {
+          display: inline-block;
+          padding: 1rem 2.5rem;
+          background: linear-gradient(135deg, #4F7042, #6E9F6D);
+          border-radius: 24px;
+          box-shadow: 0 8px 24px rgba(79, 112, 66, 0.4);
+          transform: perspective(1000px) rotateX(5deg);
+        }
+
+        .logo-text {
+          color: #F5ECD9;
+          font-weight: 900;
+          font-size: 1.4rem;
+          letter-spacing: 3px;
+          text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .worker-card {
+          background: linear-gradient(135deg, #4F7042 0%, #6E9F6D 100%);
+          border-radius: 28px;
+          padding: 2.5rem;
+          text-align: center;
+          position: relative;
+          overflow: hidden;
+          margin-bottom: 3rem;
+          box-shadow: 
+            0 20px 40px rgba(79, 112, 66, 0.5),
+            inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+
+        .worker-card-shine {
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+          animation: shine 4s ease-in-out infinite;
+          transform: skewX(-25deg);
         }
 
         @keyframes shine {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
+          0% { left: -100%; }
+          50% { left: -100%; }
+          100% { left: 100%; }
+        }
+
+        .worker-avatar {
+          width: 90px;
+          height: 90px;
+          border-radius: 50%;
+          background: rgba(245, 236, 217, 0.25);
+          border: 3px solid rgba(245, 236, 217, 0.4);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 2rem;
+          backdrop-filter: blur(15px);
+          box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+          position: relative;
+          z-index: 2;
+        }
+
+        .avatar-text {
+          color: #F5ECD9;
+          font-size: 1.8rem;
+          font-weight: 800;
+          text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .worker-name {
+          color: #F5ECD9;
+          font-size: 2.5rem;
+          font-weight: 900;
+          margin-bottom: 0.75rem;
+          text-shadow: 0 4px 8px rgba(0,0,0,0.2);
+          position: relative;
+          z-index: 2;
+          letter-spacing: -0.5px;
+        }
+
+        .worker-subtitle {
+          color: rgba(245, 236, 217, 0.85);
+          font-size: 1.1rem;
+          font-weight: 600;
+          position: relative;
+          z-index: 2;
+        }
+
+        .tip-section {
+          text-align: center;
+        }
+
+        .section-title {
+          color: #4F7042;
+          font-size: 1.75rem;
+          font-weight: 800;
+          margin-bottom: 2.5rem;
+          position: relative;
+        }
+
+        .section-title::after {
+          content: '';
+          position: absolute;
+          bottom: -8px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 60px;
+          height: 3px;
+          background: linear-gradient(90deg, #6E9F6D, #4F7042);
+          border-radius: 2px;
+        }
+
+        .amount-input-container {
+          position: relative;
+          margin-bottom: 2.5rem;
+        }
+
+        .currency-symbol {
+          position: absolute;
+          left: 2rem;
+          top: 50%;
+          transform: translateY(-50%);
+          color: #6E9F6D;
+          font-weight: 800;
+          font-size: 1.5rem;
+          z-index: 2;
+          text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .amount-input {
+          width: 100%;
+          padding: 2rem 2rem 2rem 5rem;
+          border: 3px solid rgba(79, 112, 66, 0.2);
+          border-radius: 24px;
+          font-size: 2.5rem;
+          font-weight: 800;
+          color: #4F7042;
+          background: rgba(255, 255, 255, 0.9);
+          backdrop-filter: blur(15px);
+          outline: none;
+          text-align: center;
+          transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+          box-shadow: 
+            0 8px 32px rgba(79, 112, 66, 0.1),
+            inset 0 1px 0 rgba(255,255,255,0.8);
+        }
+
+        .amount-input:focus {
+          border-color: #6E9F6D;
+          box-shadow: 
+            0 0 0 6px rgba(110, 159, 109, 0.15),
+            0 12px 40px rgba(79, 112, 66, 0.2);
+          transform: translateY(-3px) scale(1.02);
+        }
+
+        .amount-input:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+        }
+
+        .fees-breakdown {
+          background: rgba(79, 112, 66, 0.08);
+          border-radius: 24px;
+          padding: 2rem;
+          margin-bottom: 2.5rem;
+          backdrop-filter: blur(15px);
+          border: 2px solid rgba(79, 112, 66, 0.12);
+          animation: fadeInUp 0.6s ease-out;
+          box-shadow: 0 8px 32px rgba(79, 112, 66, 0.1);
+        }
+
+        @keyframes fadeInUp {
+          from { 
+            opacity: 0; 
+            transform: translateY(30px); 
+          }
+          to { 
+            opacity: 1; 
+            transform: translateY(0); 
+          }
+        }
+
+        .fee-row {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 1rem;
+          color: #4F7042;
+          font-weight: 600;
+          font-size: 1.05rem;
+        }
+
+        .fee-divider {
+          height: 2px;
+          background: linear-gradient(90deg, transparent, rgba(79, 112, 66, 0.3), transparent);
+          margin: 1.5rem 0;
+          border-radius: 1px;
+        }
+
+        .total-row {
+          font-weight: 800;
+          font-size: 1.25rem;
+          margin-bottom: 1.5rem;
+          color: #2d4a33;
+        }
+
+        .worker-receives {
+          text-align: center;
+          padding: 1.5rem;
+          background: rgba(110, 159, 109, 0.15);
+          border-radius: 16px;
+          border: 2px solid rgba(110, 159, 109, 0.25);
+          box-shadow: 0 4px 16px rgba(79, 112, 66, 0.1);
+        }
+
+        .receives-text {
+          color: #4F7042;
+          font-weight: 700;
+          font-size: 1.05rem;
+        }
+
+        .send-button {
+          width: 100%;
+          padding: 2rem;
+          border: none;
+          border-radius: 24px;
+          background: linear-gradient(135deg, #6E9F6D 0%, #4F7042 100%);
+          color: #F5ECD9;
+          font-size: 1.4rem;
+          font-weight: 800;
+          cursor: pointer;
+          position: relative;
+          overflow: hidden;
+          transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+          box-shadow: 
+            0 12px 32px rgba(79, 112, 66, 0.4),
+            inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+
+        .send-button:not(:disabled):hover {
+          transform: translateY(-4px) scale(1.02);
+          box-shadow: 
+            0 20px 40px rgba(79, 112, 66, 0.5),
+            inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+
+        .send-button:not(:disabled):active {
+          transform: translateY(-1px) scale(0.98);
+        }
+
+        .send-button:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          transform: none;
+        }
+
+        .send-button.loading {
+          animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.9; transform: scale(1.02); }
+        }
+
+        .button-shine {
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+          transition: left 0.6s ease;
+          transform: skewX(-25deg);
+        }
+
+        .send-button:not(:disabled):hover .button-shine {
+          left: 100%;
+        }
+
+        .message-display {
+          margin-top: 2rem;
+          padding: 1.5rem;
+          border-radius: 16px;
+          background: rgba(110, 159, 109, 0.12);
+          color: #4F7042;
+          font-weight: 600;
+          font-size: 1.05rem;
+          animation: slideDown 0.4s ease-out;
+          border: 2px solid rgba(110, 159, 109, 0.2);
+        }
+
+        @keyframes slideDown {
+          from { 
+            opacity: 0; 
+            transform: translateY(-15px); 
+          }
+          to { 
+            opacity: 1; 
+            transform: translateY(0); 
+          }
+        }
+
+        .success-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100vw;
+          height: 100vh;
+          background: rgba(0, 0, 0, 0.85);
+          backdrop-filter: blur(15px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+          animation: fadeIn 0.6s ease-out;
         }
 
         @keyframes fadeIn {
@@ -327,33 +658,135 @@ export default function AnimatedTipPage() {
           to { opacity: 1; }
         }
 
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes slideUp {
-          from { opacity: 0; transform: translateY(50px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes slideDown {
-          from { opacity: 0; transform: translateY(-10px); }
-          to { opacity: 1; transform: translateY(0); }
+        .success-content {
+          background: linear-gradient(135deg, #F5ECD9 0%, rgba(245, 236, 217, 0.98) 100%);
+          border-radius: 36px;
+          padding: 4rem 3rem;
+          text-align: center;
+          max-width: 450px;
+          margin: 2rem;
+          position: relative;
+          box-shadow: 
+            0 32px 64px rgba(0, 0, 0, 0.4),
+            inset 0 1px 0 rgba(255,255,255,0.3);
+          animation: successPop 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
 
         @keyframes successPop {
-          0% { opacity: 0; transform: scale(0.5) rotate(-10deg); }
-          100% { opacity: 1; transform: scale(1) rotate(0deg); }
+          0% { 
+            opacity: 0; 
+            transform: scale(0.4) rotate(-15deg); 
+          }
+          100% { 
+            opacity: 1; 
+            transform: scale(1) rotate(0deg); 
+          }
+        }
+
+        .success-icon {
+          font-size: 5rem;
+          margin-bottom: 1.5rem;
+          animation: bounce 1.5s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+          0%, 100% { transform: translateY(0) scale(1); }
+          50% { transform: translateY(-15px) scale(1.1); }
+        }
+
+        .success-title {
+          color: #4F7042;
+          font-size: 2rem;
+          font-weight: 900;
+          margin-bottom: 1.5rem;
+          letter-spacing: -0.5px;
+        }
+
+        .success-message {
+          color: #6E9F6D;
+          font-size: 1.2rem;
+          line-height: 1.7;
+          margin-bottom: 2.5rem;
+          font-weight: 500;
+        }
+
+        .success-checkmark {
+          width: 70px;
+          height: 70px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #6E9F6D, #4F7042);
+          color: #F5ECD9;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 2.5rem;
+          font-weight: 900;
+          margin: 0 auto;
+          animation: checkmarkPop 0.8s ease-out 0.6s both;
+          box-shadow: 0 8px 32px rgba(79, 112, 66, 0.4);
         }
 
         @keyframes checkmarkPop {
-          0% { opacity: 0; transform: scale(0); }
-          100% { opacity: 1; transform: scale(1); }
+          0% { 
+            opacity: 0; 
+            transform: scale(0) rotate(180deg); 
+          }
+          100% { 
+            opacity: 1; 
+            transform: scale(1) rotate(0deg); 
+          }
         }
 
-        .bg-gradient-radial {
-          background: radial-gradient(circle, var(--tw-gradient-stops));
+        /* Responsive Design */
+        @media (max-width: 640px) {
+          .main-container {
+            padding: 1.5rem;
+          }
+          
+          .glass-container {
+            padding: 2.5rem;
+          }
+
+          .worker-name {
+            font-size: 2rem;
+          }
+
+          .amount-input {
+            font-size: 2rem;
+            padding: 1.75rem 1.75rem 1.75rem 4.5rem;
+          }
+
+          .currency-symbol {
+            font-size: 1.25rem;
+            left: 1.5rem;
+          }
+
+          .success-content {
+            margin: 1.5rem;
+            padding: 3rem 2rem;
+          }
+
+          .success-title {
+            font-size: 1.75rem;
+          }
+
+          .success-message {
+            font-size: 1.1rem;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .glass-container {
+            padding: 2rem;
+          }
+
+          .worker-name {
+            font-size: 1.75rem;
+          }
+
+          .amount-input {
+            font-size: 1.75rem;
+          }
         }
       `}</style>
     </>
