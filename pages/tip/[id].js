@@ -119,7 +119,7 @@ export default function AnimatedTipPage() {
                 </div>
                 <div className="worker-receives">
                   <span className="receives-text">
-                    ✨ {worker.name} receives {workerGets.toFixed(2)} AED
+                    ✨ {worker.name} receives {workerGets.toFixed(2) - 1} AED
                   </span>
                 </div>
               </div>
