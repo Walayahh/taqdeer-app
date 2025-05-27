@@ -65,7 +65,7 @@ export default function AnimatedTipPage() {
           {/* Logo Section */}
           <div className="logo-section">
           <div className="logo-container">
-            <img src="taqdeer.png" alt="Taqdeer" className="logo-image" />
+            <img src="/taqdeer.png" alt="Taqdeer" className="logo-image" />
           </div>
 
           </div>
