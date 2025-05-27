@@ -1,9 +1,10 @@
-const mongoose = require('mongoose');
+// /models/Tip.js
+import mongoose from 'mongoose';
 
 const TipSchema = new mongoose.Schema({
-  worker: { type: mongoose.Schema.Types.ObjectId, ref: 'Worker', required: true },
-  amount: { type: Number, required: true },
+  workerId:  { type: String, required: true },
+  amount:    { type: Number, required: true },
   createdAt: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.model('Tip', TipSchema);
+export default mongoose.models.Tip || mongoose.model('Tip', TipSchema);
