@@ -1,9 +1,16 @@
-// pages/tip/[workerId].js
-import { useState } from 'react'
-import QRCode       from 'qrcode.react'
+// pages/tip/[id].js
+import React, { useState } from 'react'
+import QRCode             from 'qrcode.react'
+import dbConnect          from '../../lib/mongoose'
+import WorkerModel        from '../../models/Worker'
 
-export default function TipPage({ worker: initial }) {
-  const [worker, setWorker]   = useState(initial)
+export default function TipPage({ worker: initialWorker, error }) {
+  // handle any getServerSideProps error
+  if (error) {
+    return <p style={{ color: 'red' }}>Error loading worker: {error}</p>
+  }
+
+  const [worker, setWorker]   = useState(initialWorker)
   const [amount, setAmount]   = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
@@ -14,13 +21,16 @@ export default function TipPage({ worker: initial }) {
   const totalPay   = numAmount + serviceFee
   const tipUrl     = `${process.env.NEXT_PUBLIC_BASE_URL}/tip/${worker.workerId}`
 
+  // derive this each render instead of with a broken hook
+  const showFees = numAmount > 0
+
   const handleTip = async () => {
     if (numAmount < 1) {
-      setMessage('❌ Enter at least 1 AED')
-      setTimeout(() => setMessage(''), 3000)
-      return
+      setMessage('❌ Please enter at least 1 AED')
+      return setTimeout(() => setMessage(''), 3000)
     }
     setLoading(true); setMessage('')
+
     try {
       const res = await fetch('/api/tip', {
         method:  'POST',
@@ -44,6 +54,7 @@ export default function TipPage({ worker: initial }) {
       setLoading(false)
     }
   }
+
 
 
   return (
