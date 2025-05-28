@@ -1,11 +1,8 @@
 // pages/tip/[id].js
 import React, { useState } from 'react'
 import QRCode             from 'qrcode.react'
-import dbConnect          from '../../lib/mongoose'
-import WorkerModel        from '../../models/Worker'
 
 export default function TipPage({ worker: initialWorker, error }) {
-  // handle any getServerSideProps error
   if (error) {
     return <p style={{ color: 'red' }}>Error loading worker: {error}</p>
   }
@@ -19,10 +16,8 @@ export default function TipPage({ worker: initialWorker, error }) {
   const numAmount  = parseFloat(amount) || 0
   const serviceFee = numAmount > 0 ? numAmount * 0.0225 + 0.25 : 0
   const totalPay   = numAmount + serviceFee
+  const showFees   = numAmount > 0
   const tipUrl     = `${process.env.NEXT_PUBLIC_BASE_URL}/tip/${worker.workerId}`
-
-  // derive this each render instead of with a broken hook
-  const showFees = numAmount > 0
 
   const handleTip = async () => {
     if (numAmount < 1) {
@@ -30,7 +25,6 @@ export default function TipPage({ worker: initialWorker, error }) {
       return setTimeout(() => setMessage(''), 3000)
     }
     setLoading(true); setMessage('')
-
     try {
       const res = await fetch('/api/tip', {
         method:  'POST',
@@ -54,7 +48,6 @@ export default function TipPage({ worker: initialWorker, error }) {
       setLoading(false)
     }
   }
-
 
 
   return (
@@ -835,22 +828,29 @@ export default function TipPage({ worker: initialWorker, error }) {
 }
 
 export async function getServerSideProps({ params }) {
-  // SSR loads the worker on every request—no build‐time prerender
-  const dbConnect   = (await import('../../lib/mongoose')).default
-  const WorkerModel = (await import('../../models/Worker')).default
+  try {
+    // dynamically import so this code only runs on the server
+    const dbConnect   = (await import('../../lib/mongoose')).default
+    const WorkerModel = (await import('../../models/Worker')).default
 
-  await dbConnect()
-  const doc = await WorkerModel.findOne({ workerId: params.id}).lean()
-  if (!doc) {
-    return { notFound: true }
-  }
+    await dbConnect()
+    const doc = await WorkerModel.findOne({ workerId: params.id }).lean()
+    if (!doc) return { notFound: true }
 
-  return {
-    props: {
-      worker: {
-        name:     doc.name,
-        workerId: doc.workerId,
-        balance:  doc.balance
+    return {
+      props: {
+        worker: {
+          name:     doc.name,
+          workerId: doc.workerId,
+          balance:  doc.balance
+        }
+      }
+    }
+  } catch (e) {
+    console.error('getServerSideProps error:', e)
+    return {
+      props: {
+        error: e.message
       }
     }
   }
