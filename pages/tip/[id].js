@@ -16,6 +16,8 @@ export default function TipPage({ worker: initialWorker, error }) {
   const numAmount  = parseFloat(amount) || 0
   const serviceFee = numAmount > 0 ? numAmount * 0.0225 + 0.25 : 0
   const totalPay   = numAmount + serviceFee
+  const workerGets = numAmount - 1  // ← here’s what they actually receive
+
   const showFees   = numAmount > 0
   const tipUrl     = `${process.env.NEXT_PUBLIC_BASE_URL}/tip/${worker.workerId}`
 
