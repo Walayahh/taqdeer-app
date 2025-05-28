@@ -1,26 +1,13 @@
 // pages/tip/[workerId].js
-import { useState, useEffect } from 'react'
-import { useRouter }           from 'next/router'
-import QRCode                  from 'qrcode.react'
+import { useState } from 'react'
+import QRCode       from 'qrcode.react'
 
-export default function TipPage() {
-  const router = useRouter()
-  const { workerId } = router.query
-
-  const [worker, setWorker] = useState(null)
-  const [amount, setAmount] = useState('')
+export default function TipPage({ initialWorker }) {
+  const [worker, setWorker]   = useState(initialWorker)
+  const [amount, setAmount]   = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [showSuccess, setShowSuccess] = useState(false)
-
-  // load worker data once we have the ID
-  useEffect(() => {
-    if (!workerId) return
-    fetch(`/api/worker/${workerId}`)
-      .then(r => r.json())
-      .then(data => setWorker(data))
-      .catch(() => setMessage('❌ Failed to load worker'))
-  }, [workerId])
 
   const numAmount  = parseFloat(amount) || 0
   const serviceFee = numAmount > 0 ? numAmount * 0.0225 + 0.25 : 0
@@ -29,22 +16,23 @@ export default function TipPage() {
   const handleTip = async () => {
     if (numAmount < 1) {
       setMessage('❌ Please enter at least 1 AED')
-      return setTimeout(() => setMessage(''), 3000)
+      setTimeout(() => setMessage(''), 3000)
+      return
     }
     setLoading(true)
     setMessage('')
 
     try {
       const res = await fetch('/api/tip', {
-        method: 'POST',
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ workerId, amount: numAmount })
+        body:    JSON.stringify({ workerId: worker.workerId, amount: numAmount })
       })
       if (!res.ok) throw new Error()
       const updated = await res.json()
       setWorker(updated)
       setShowSuccess(true)
-      setMessage(`✅ Tip sent! ${updated.name}’s new balance: ${updated.balance.toFixed(2)} AED`)
+      setMessage(`✅ ${updated.name}’s new balance: ${updated.balance.toFixed(2)} AED`)
       setTimeout(() => {
         setShowSuccess(false)
         setAmount('')
@@ -58,29 +46,28 @@ export default function TipPage() {
     }
   }
 
-  if (!worker) return <p>Loading worker…</p>
+  const tipUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/tip/${worker.workerId}`
 
   return (
     <>
       <div className="main-container">
         <div className="glass-container">
+          {/* Logo */}
           <div className="logo-section">
             <img src="/taqdeer.png" alt="Taqdeer" className="logo-image" />
           </div>
 
+          {/* Worker Info */}
           <div className="worker-card">
             <h1 className="worker-name">{worker.name}</h1>
             <p className="worker-subtitle">ID: {worker.workerId}</p>
             <p className="worker-balance">
-              Current balance: {worker.balance.toFixed(2)} AED
+              Balance: {worker.balance.toFixed(2)} AED
             </p>
-            <QRCode
-              value={`${window.location.origin}/tip/${worker.workerId}`}
-              size={128}
-              level="H"
-            />
+            <QRCode value={tipUrl} size={128} level="H" />
           </div>
 
+          {/* Tip Form */}
           <div className="tip-section">
             <h2>Send a Tip</h2>
             <div className="amount-input-container">
@@ -136,7 +123,7 @@ export default function TipPage() {
         </div>
       )}
 
-     <style jsx>{`
+       <style jsx>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
         .logo-placeholder {
@@ -797,5 +784,28 @@ export default function TipPage() {
   )
 }
 
-      
- 
+// Fetch the worker on the server, so we never “stall” on loading
+export async function getServerSideProps({ params }) {
+  const dbConnect = (await import('../../lib/mongoose')).default
+  const Worker    = (await import('../../models/Worker')).default
+
+  await dbConnect()
+  const doc = await Worker.findOne({ workerId: params.workerId }).lean()
+
+  if (!doc) {
+    return { notFound: true }
+  }
+
+  return {
+    props: {
+      initialWorker: {
+        name:     doc.name,
+        workerId: doc.workerId,
+        balance:  doc.balance
+      }
+    }
+  }
+}
+
+
+    

@@ -1,6 +1,6 @@
 // pages/api/tip.js
 import dbConnect from '../../lib/mongoose'
-import Worker     from '../../models/Worker'
+import Worker    from '../../models/Worker'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -14,19 +14,19 @@ export default async function handler(req, res) {
   }
 
   await dbConnect()
-  const worker = await Worker.findOneAndUpdate(
+  const updated = await Worker.findOneAndUpdate(
     { workerId },
     { $inc: { balance: amount -1 } },
     { new: true }
   )
 
-  if (!worker) {
+  if (!updated) {
     return res.status(404).json({ error: 'Worker not found' })
   }
 
-  return res.status(200).json({
-    name:    worker.name,
-    workerId: worker.workerId,
-    balance: worker.balance
+  res.status(200).json({
+    name:     updated.name,
+    workerId: updated.workerId,
+    balance:  updated.balance
   })
 }
