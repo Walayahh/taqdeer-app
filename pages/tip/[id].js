@@ -1,11 +1,9 @@
 // pages/tip/[workerId].js
 import { useState } from 'react'
 import QRCode       from 'qrcode.react'
-import dbConnect    from '../../lib/mongoose'
-import WorkerModel  from '../../models/Worker'
 
-export default function TipPage({ worker: initialWorker }) {
-  const [worker, setWorker]   = useState(initialWorker)
+export default function TipPage({ worker: initial }) {
+  const [worker, setWorker]   = useState(initial)
   const [amount, setAmount]   = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
@@ -23,7 +21,6 @@ export default function TipPage({ worker: initialWorker }) {
       return
     }
     setLoading(true); setMessage('')
-
     try {
       const res = await fetch('/api/tip', {
         method:  'POST',
@@ -47,6 +44,7 @@ export default function TipPage({ worker: initialWorker }) {
       setLoading(false)
     }
   }
+
 
   return (
     <>
@@ -823,4 +821,26 @@ export default function TipPage({ worker: initialWorker }) {
       `}</style>
     </>
   );
+}
+
+export async function getServerSideProps({ params }) {
+  // SSR loads the worker on every request—no build‐time prerender
+  const dbConnect   = (await import('../../lib/mongoose')).default
+  const WorkerModel = (await import('../../models/Worker')).default
+
+  await dbConnect()
+  const doc = await WorkerModel.findOne({ workerId: params.workerId }).lean()
+  if (!doc) {
+    return { notFound: true }
+  }
+
+  return {
+    props: {
+      worker: {
+        name:     doc.name,
+        workerId: doc.workerId,
+        balance:  doc.balance
+      }
+    }
+  }
 }
