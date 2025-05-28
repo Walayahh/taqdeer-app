@@ -126,7 +126,7 @@ export default function TipPage({ worker: initialWorker, error }) {
                 </div>
                 <div className="worker-receives">
                   <span className="receives-text">
-                    ✨ {worker.name} receives {workerGets.toFixed(2) - 1} AED
+                    ✨ {worker.name} receives {workerGets.toFixed(2)} AED
                   </span>
                 </div>
               </div>
