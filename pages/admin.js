@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import QRCode from 'qrcode.react';
 import { useRouter } from 'next/router';
 
-export default function AdminPage() {
+export default function AdminPage({ workers = [] }) {
   const [name, setName]     = useState('');
   const [id,   setId]       = useState('');
   const [err,  setErr]      = useState('');
