@@ -1,167 +1,142 @@
-import React, { useState, useEffect } from 'react';
+// pages/tip/[workerId].js
+import { useState, useEffect } from 'react'
+import { useRouter }           from 'next/router'
+import QRCode                  from 'qrcode.react'
 
+export default function TipPage() {
+  const router = useRouter()
+  const { workerId } = router.query
 
-export default function AnimatedTipPage() {
-  const [amount, setAmount] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [showFees, setShowFees] = useState(false);
+  const [worker, setWorker] = useState(null)
+  const [amount, setAmount] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState('')
+  const [showSuccess, setShowSuccess] = useState(false)
 
-  // Static worker info for demo
-  const worker = { name: 'Ahmed Hassan', id: '123' };
-
-  // Fees calculation
-  const numAmount = parseFloat(amount) || 0;
-  const serviceFee = numAmount > 0 ? numAmount * 0.0225 + 0.25 : 0;
-  const totalPay = numAmount + serviceFee;
-  const workerGets = numAmount;
-
+  // load worker data once we have the ID
   useEffect(() => {
-    setShowFees(numAmount > 0);
-  }, [numAmount]);
+    if (!workerId) return
+    fetch(`/api/worker/${workerId}`)
+      .then(r => r.json())
+      .then(data => setWorker(data))
+      .catch(() => setMessage('❌ Failed to load worker'))
+  }, [workerId])
+
+  const numAmount  = parseFloat(amount) || 0
+  const serviceFee = numAmount > 0 ? numAmount * 0.0225 + 0.25 : 0
+  const totalPay   = numAmount + serviceFee
 
   const handleTip = async () => {
     if (numAmount < 1) {
-      setMessage('❌ Please enter at least 1 AED');
-      return setTimeout(() => setMessage(''), 3000);
+      setMessage('❌ Please enter at least 1 AED')
+      return setTimeout(() => setMessage(''), 3000)
     }
-    setLoading(true);
-    setMessage('');
+    setLoading(true)
+    setMessage('')
+
     try {
-      await new Promise(r => setTimeout(r, 1500));
-      setShowSuccess(true);
-      setMessage(`✅ Tip sent! ${worker.name} gets ${workerGets.toFixed(2)} AED.`);
+      const res = await fetch('/api/tip', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ workerId, amount: numAmount })
+      })
+      if (!res.ok) throw new Error()
+      const updated = await res.json()
+      setWorker(updated)
+      setShowSuccess(true)
+      setMessage(`✅ Tip sent! ${updated.name}’s new balance: ${updated.balance.toFixed(2)} AED`)
       setTimeout(() => {
-        setShowSuccess(false);
-        setAmount('');
-        setMessage('');
-      }, 4000);
+        setShowSuccess(false)
+        setAmount('')
+        setMessage('')
+      }, 4000)
     } catch {
-      setMessage('❌ Network error');
-      setTimeout(() => setMessage(''), 3000);
+      setMessage('❌ Network or server error')
+      setTimeout(() => setMessage(''), 3000)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
+
+  if (!worker) return <p>Loading worker…</p>
 
   return (
     <>
-      {/* Animated Background */}
-      <div className="animated-background">
-        <div className="gradient-orb orb-1"></div>
-        <div className="gradient-orb orb-2"></div>
-        <div className="gradient-orb orb-3"></div>
-        <div className="floating-particles">
-          {[...Array(12)].map((_, i) => (
-            <div key={i} className={`particle particle-${i + 1}`}></div>
-          ))}
-        </div>
-      </div>
-
-      {/* Main Container */}
       <div className="main-container">
         <div className="glass-container">
-          {/* Logo Section */}
           <div className="logo-section">
-          <div className="logo-container">
             <img src="/taqdeer.png" alt="Taqdeer" className="logo-image" />
           </div>
 
-          </div>
-
-          {/* Worker Card */}
           <div className="worker-card">
-            <div className="worker-card-shine"></div>
-            <div className="worker-avatar">
-              <span className="avatar-text">
-                {worker.name.split(' ').map(n => n[0]).join('')}
-              </span>
-            </div>
             <h1 className="worker-name">{worker.name}</h1>
-            <p className="worker-subtitle">Service Professional</p>
+            <p className="worker-subtitle">ID: {worker.workerId}</p>
+            <p className="worker-balance">
+              Current balance: {worker.balance.toFixed(2)} AED
+            </p>
+            <QRCode
+              value={`${window.location.origin}/tip/${worker.workerId}`}
+              size={128}
+              level="H"
+            />
           </div>
 
-          {/* Tip Section */}
           <div className="tip-section">
-            <h2 className="section-title">Send a Tip</h2>
-            
-            {/* Amount Input */}
+            <h2>Send a Tip</h2>
             <div className="amount-input-container">
-              <div className="currency-symbol">AED</div>
+              <span className="currency-symbol">AED</span>
               <input
                 type="number"
                 min="1"
                 step="0.01"
                 placeholder="0.00"
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={e => setAmount(e.target.value)}
                 disabled={loading}
                 className="amount-input"
               />
             </div>
 
-            {/* Fees Breakdown */}
-            {showFees && (
+            {numAmount > 0 && (
               <div className="fees-breakdown">
                 <div className="fee-row">
-                  <span>Tip Amount</span>
+                  <span>Tip:</span>
                   <span>{numAmount.toFixed(2)} AED</span>
                 </div>
                 <div className="fee-row">
-                  <span>Service Fee</span>
+                  <span>Service Fee:</span>
                   <span>{serviceFee.toFixed(2)} AED</span>
                 </div>
-                <div className="fee-divider"></div>
                 <div className="fee-row total-row">
-                  <span>Total Payment</span>
-                  <span>{totalPay.toFixed(2)} AED</span>
-                </div>
-                <div className="worker-receives">
-                  <span className="receives-text">
-                    ✨ {worker.name} receives {workerGets.toFixed(2) - 1} AED
-                  </span>
+                  <strong>Total:</strong>
+                  <strong>{totalPay.toFixed(2)} AED</strong>
                 </div>
               </div>
             )}
 
-            {/* Send Button */}
             <button
-              className={`send-button ${loading ? 'loading' : ''}`}
               onClick={handleTip}
               disabled={loading || numAmount < 1}
+              className="send-button"
             >
-              <span className="button-text">
-                {loading ? 'Sending...' : 'Send Tip'}
-              </span>
-              <div className="button-shine"></div>
+              {loading ? 'Sending…' : 'Send Tip'}
             </button>
 
-            {/* Message Display */}
-            {message && (
-              <div className="message-display">
-                {message}
-              </div>
-            )}
+            {message && <div className="message-display">{message}</div>}
           </div>
         </div>
       </div>
 
-      {/* Success Overlay */}
       {showSuccess && (
         <div className="success-overlay">
           <div className="success-content">
-            <div className="success-icon">🎉</div>
-            <h2 className="success-title">Tip Sent Successfully!</h2>
-            <p className="success-message">
-              Your generous tip is on its way to <strong>{worker.name}</strong>
-            </p>
-            <div className="success-checkmark">✓</div>
+            <h2>🎉 Success!</h2>
+            <p>{worker.name} has been tipped.</p>
           </div>
         </div>
       )}
 
-      <style jsx>{`
+     <style jsx>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
         .logo-placeholder {
@@ -819,5 +794,8 @@ export default function AnimatedTipPage() {
         }
       `}</style>
     </>
-  );
+  )
 }
+
+      
+ 
