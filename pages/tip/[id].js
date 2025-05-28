@@ -829,7 +829,7 @@ export async function getServerSideProps({ params }) {
   const WorkerModel = (await import('../../models/Worker')).default
 
   await dbConnect()
-  const doc = await WorkerModel.findOne({ workerId: params.workerId }).lean()
+  const doc = await WorkerModel.findOne({ workerId: params.id}).lean()
   if (!doc) {
     return { notFound: true }
   }
