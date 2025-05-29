@@ -124,11 +124,7 @@ export default function TipPage({ worker: initialWorker, error }) {
                   <span>Total Payment</span>
                   <span>{totalPay.toFixed(2)} AED</span>
                 </div>
-                <div className="worker-receives">
-                  <span className="receives-text">
-                    ✨ {worker.name} receives {workerGets.toFixed(2)} AED
-                  </span>
-                </div>
+                
               </div>
             )}
 
